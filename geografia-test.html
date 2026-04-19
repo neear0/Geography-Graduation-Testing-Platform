@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geography — Interactive Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1e2530;--bg4:#252d3a;
+  --gold:#c9a84c;--gold2:#e8c97a;--gold-faint:rgba(201,168,76,0.08);
+  --text:#e8e4d9;--text2:#a89e8a;--text3:#6b6357;
+  --green:#3fb97a;--green-bg:rgba(63,185,122,0.1);
+  --red:#e05a5a;--red-bg:rgba(224,90,90,0.1);
+  --blue:#5a9ee0;--blue-bg:rgba(90,158,224,0.08);
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --radius:12px;--radius-lg:18px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+.app{max-width:860px;margin:0 auto;padding:0 20px}
+
+header{padding:26px 0 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--gold2)}
+.logo span{font-style:italic;font-weight:400}
+.header-stats{display:flex;gap:22px}
+.hstat{text-align:center}
+.hstat-val{font-size:19px;font-weight:600;color:var(--gold2);line-height:1}
+.hstat-lbl{font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-top:2px}
+
+.screen{display:none;padding:30px 0 70px}
+.screen.active{display:block}
+
+/* HOME */
+.home-hero{text-align:center;padding:36px 0 44px}
+.home-hero h1{font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:var(--gold2);line-height:1.15;margin-bottom:10px}
+.home-hero h1 em{font-style:italic;color:var(--text)}
+.home-hero p{color:var(--text2);font-size:15px;max-width:500px;margin:0 auto 34px}
+.globe{width:64px;height:64px;border-radius:50%;background:conic-gradient(from 0deg,#3a6186 0%,#1d4e89 40%,#3a6186 60%,#2c5f2e 80%,#3a6186 100%);box-shadow:0 0 36px rgba(90,158,224,0.22);margin:0 auto 26px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.section-sep{display:flex;align-items:center;gap:14px;margin:24px 0}
+.section-sep span{font-size:11px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+.section-sep::before,.section-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:28px}
+.topic-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;text-align:left}
+.topic-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.topic-card:hover{background:var(--bg3);border-color:var(--border2);transform:translateY(-2px)}
+.topic-card:hover::before{transform:scaleX(1)}
+.topic-card.selected{background:var(--gold-faint);border-color:rgba(201,168,76,0.35)}
+.topic-card.selected::before{transform:scaleX(1)}
+.tc-icon{font-size:22px;margin-bottom:8px}
+.tc-title{font-weight:600;font-size:13px;margin-bottom:3px;color:var(--text)}
+.tc-count{font-size:11px;color:var(--text3)}
+.tc-check{position:absolute;top:11px;right:11px;width:19px;height:19px;border-radius:50%;background:var(--gold);display:none;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700}
+.topic-card.selected .tc-check{display:flex}
+
+.settings-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:26px}
+.setting-pill{display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);border-radius:40px;padding:7px 15px;cursor:pointer;font-size:12px;color:var(--text2);transition:all .2s;user-select:none}
+.setting-pill.active{background:var(--gold-faint);border-color:rgba(201,168,76,0.35);color:var(--gold2)}
+.setting-pill svg{width:13px;height:13px;flex-shrink:0}
+
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{padding:12px 26px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .18s;letter-spacing:.2px;font-family:inherit}
+.btn-primary{background:var(--gold);color:#0d0d00;font-weight:700}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-secondary:hover{background:var(--bg3);color:var(--text)}
+.btn-ghost{background:transparent;color:var(--text3);border:1px solid var(--border);font-size:13px}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none !important}
+
+/* PROGRESS */
+.progress-wrap{margin-bottom:22px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.progress-label{font-size:11px;color:var(--text3);letter-spacing:.4px;text-transform:uppercase}
+.progress-frac{font-size:13px;color:var(--text2);font-weight:500}
+.progress-bar{height:3px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .4s ease}
+
+.streak-bar{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap}
+.streak-dot{width:22px;height:6px;border-radius:3px;background:var(--bg3);border:1px solid var(--border);transition:background .3s,border-color .3s}
+
+.q-meta{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.q-badge{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:3px 9px;border-radius:20px;background:var(--gold-faint);color:var(--gold);border:1px solid rgba(201,168,76,0.2)}
+.q-topic-tag{font-size:11px;color:var(--text3)}
+.q-type-tag{font-size:10px;color:var(--text3);margin-left:auto;padding:3px 8px;border-radius:6px;border:1px solid var(--border)}
+.diff-dots{display:flex;gap:3px}
+.diff-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);border:1px solid var(--border)}
+.diff-dot.on{background:var(--gold);border-color:var(--gold)}
+
+.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;margin-bottom:16px}
+.q-text{font-size:16px;font-weight:500;line-height:1.6;color:var(--text);margin-bottom:22px}
+
+.options{display:flex;flex-direction:column;gap:9px}
+.option{display:flex;align-items:flex-start;gap:13px;padding:13px 15px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all .15s;text-align:left;width:100%;font-family:inherit;font-size:14px;color:var(--text2)}
+.option:hover:not(:disabled){background:var(--bg4);border-color:var(--border2);color:var(--text)}
+.option.selected{background:var(--blue-bg);border-color:rgba(90,158,224,0.35);color:var(--text)}
+.option.selected .option-key{background:var(--blue);color:#fff;border-color:var(--blue)}
+.option-key{width:25px;height:25px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text3);flex-shrink:0;transition:all .15s}
+.option-text{flex:1;line-height:1.5;padding-top:1px}
+
+.tf-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tf-btn{padding:16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:15px;font-weight:500;font-family:inherit;color:var(--text2);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.tf-btn:hover:not(:disabled){background:var(--bg4);border-color:var(--border2);color:var(--text)}
+.tf-btn.selected{background:var(--blue-bg);border-color:rgba(90,158,224,0.35);color:var(--text)}
+
+.fill-input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:15px;color:var(--text);font-family:inherit;outline:none;transition:border .2s;width:100%}
+.fill-input:focus{border-color:rgba(201,168,76,0.35);background:var(--bg4)}
+.fill-hint{font-size:12px;color:var(--text3);margin-top:8px}
+
+.q-controls{display:flex;gap:10px;flex-wrap:wrap}
+.q-controls .btn{flex:1;min-width:110px}
+
+.timer-ring{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);padding:5px 11px;border-radius:20px;background:var(--bg2);border:1px solid var(--border)}
+.timer-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.timer-ring.urgent{color:var(--red);border-color:rgba(224,90,90,0.3)}
+.timer-ring.urgent .timer-dot{background:var(--red)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .28s ease both}
+
+/* RESULTS */
+.results-hero{text-align:center;padding:36px 0 28px}
+.score-ring{position:relative;width:130px;height:130px;margin:0 auto 20px}
+.score-ring svg{transform:rotate(-90deg)}
+.srb{fill:none;stroke:var(--bg3);stroke-width:8}
+.srf{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s ease}
+.score-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:var(--gold2)}
+.results-grade{display:inline-block;font-size:13px;font-weight:600;padding:5px 16px;border-radius:20px;margin-bottom:8px;letter-spacing:.3px}
+.grade-A{background:rgba(63,185,122,0.12);color:var(--green);border:1px solid rgba(63,185,122,0.25)}
+.grade-B{background:rgba(201,168,76,0.1);color:var(--gold2);border:1px solid rgba(201,168,76,0.25)}
+.grade-C{background:rgba(90,158,224,0.08);color:var(--blue);border:1px solid rgba(90,158,224,0.2)}
+.grade-D{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,90,90,0.2)}
+.results-msg{font-size:14px;color:var(--text2);margin-top:4px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:26px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center}
+.stat-val{font-size:24px;font-weight:700;margin-bottom:4px}
+.stat-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+
+.tb-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.tb-row{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+.tb-name{font-size:12px;color:var(--text2);min-width:180px}
+.tb-bar-wrap{flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.tb-bar{height:100%;border-radius:4px;transition:width .9s ease}
+.tb-pct{font-size:11px;color:var(--text3);min-width:32px;text-align:right}
+
+.review-filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.rf-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+.rf-btn.active{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.review-list{display:flex;flex-direction:column;gap:10px}
+.review-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.ri-header{display:flex;align-items:flex-start;gap:12px;padding:16px 18px;cursor:pointer;transition:background .15s}
+.ri-header:hover{background:var(--bg3)}
+.ri-status{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px}
+.st-correct{background:rgba(63,185,122,0.18);color:var(--green)}
+.st-wrong{background:rgba(224,90,90,0.18);color:var(--red)}
+.st-skipped{background:var(--bg4);color:var(--text3)}
+.ri-main{flex:1;min-width:0}
+.ri-q-text{font-size:13px;font-weight:500;color:var(--text);line-height:1.5}
+.ri-topic{font-size:11px;color:var(--text3);margin-top:2px}
+.ri-chev{color:var(--text3);font-size:13px;flex-shrink:0;margin-top:4px;transition:transform .2s;user-select:none}
+.ri-chev.open{transform:rotate(180deg)}
+.ri-body{display:none;padding:0 18px 16px;border-top:1px solid var(--border)}
+.ri-body.open{display:block}
+.ri-ans-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.ans-box{padding:8px 12px;border-radius:var(--radius);font-size:13px;flex:1;min-width:130px;line-height:1.5}
+.ans-box-label{font-size:10px;text-transform:uppercase;letter-spacing:.4px;opacity:.65;display:block;margin-bottom:3px}
+.ans-yours{background:var(--red-bg);border:1px solid rgba(224,90,90,0.2);color:var(--red)}
+.ans-yours.ok{background:var(--green-bg);border:1px solid rgba(63,185,122,0.2);color:var(--green)}
+.ans-correct{background:var(--green-bg);border:1px solid rgba(63,185,122,0.2);color:var(--green)}
+.ri-exp{margin-top:10px;padding:10px 12px;background:var(--blue-bg);border:1px solid rgba(90,158,224,0.14);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.65}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:30px;max-width:380px;width:100%;text-align:center}
+.modal-card h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:8px;color:var(--text)}
+.modal-card p{color:var(--text2);font-size:13px;margin-bottom:22px;line-height:1.6}
+
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+@media(max-width:580px){.home-hero h1{font-size:28px}.topics-grid{grid-template-columns:1fr 1fr}.tf-options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">Geo<span>graphy</span> Test</div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-val" id="hs-q">—</div><div class="hstat-lbl">Question</div></div>
+    <div class="hstat"><div class="hstat-val" id="hs-answered">0</div><div class="hstat-lbl">Answered</div></div>
+    <div class="hstat" id="hs-tw" style="display:none"><div class="hstat-val" id="hs-timer">—</div><div class="hstat-lbl">Timer</div></div>
+  </div>
+</header>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="home-hero fade-in">
+    <div class="globe">🌍</div>
+    <h1>Geography<br><em>Interactive Test</em></h1>
+    <p>Select topics, configure settings and find out how well you know your geography. Results and explanations are shown only at the end.</p>
+  </div>
+  <div class="section-sep"><span>Select Topics</span></div>
+  <div class="topics-grid" id="topics-grid"></div>
+  <div class="section-sep"><span>Settings</span></div>
+  <div class="settings-row">
+    <div class="setting-pill" id="sp-timer" onclick="toggleSetting('timer')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Timer (20s/question)
+    </div>
+    <div class="setting-pill" id="sp-shuffle" onclick="toggleSetting('shuffle')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>Shuffle questions
+    </div>
+    <div class="setting-pill" id="sp-hard" onclick="toggleSetting('hard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Hard questions only
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="startTest()">Start Test →</button>
+    <button class="btn btn-secondary" onclick="startTest(true)">All topics</button>
+  </div>
+</div>
+
+<!-- TEST -->
+<div class="screen" id="screen-test">
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label">Progress</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="timer-ring" id="timer-ring" style="display:none"><div class="timer-dot"></div><span id="timer-display">20</span>s</div>
+        <span class="progress-frac" id="q-frac">1 / 30</span>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="q-progress" style="width:0%"></div></div>
+  </div>
+  <div class="streak-bar" id="streak-bar"></div>
+  <div class="q-meta">
+    <div class="q-badge" id="q-badge">Q1</div>
+    <div class="q-topic-tag" id="q-topic-tag"></div>
+    <div class="diff-dots" id="q-diff"></div>
+    <div class="q-type-tag" id="q-type-tag"></div>
+  </div>
+  <div class="q-card fade-in" id="q-card">
+    <div class="q-text" id="q-text"></div>
+    <div id="q-input-area"></div>
+  </div>
+  <div class="q-controls">
+    <button class="btn btn-ghost" onclick="skipQuestion()" id="skip-btn" style="flex:0 0 auto">Skip</button>
+    <button class="btn btn-primary" onclick="submitAndNext()" id="next-btn" disabled>Next →</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="screen-results">
+  <div class="results-hero">
+    <div class="score-ring">
+      <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle class="srb" cx="65" cy="65" r="54"/>
+        <circle class="srf" id="ring-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+      </svg>
+      <div class="score-num" id="res-pct">0%</div>
+    </div>
+    <div class="results-grade" id="res-grade"></div>
+    <div class="results-msg" id="res-msg"></div>
+  </div>
+  <div class="stats-grid" id="res-stats"></div>
+  <div style="margin-bottom:26px">
+    <div class="tb-title">Results by topic</div>
+    <div id="tb-rows"></div>
+  </div>
+  <div class="section-sep"><span>Review answers</span></div>
+  <div class="review-filters">
+    <button class="rf-btn active" onclick="filterReview('all',this)">All</button>
+    <button class="rf-btn" onclick="filterReview('wrong',this)">Wrong</button>
+    <button class="rf-btn" onclick="filterReview('correct',this)">Correct</button>
+    <button class="rf-btn" onclick="filterReview('skipped',this)">Skipped</button>
+  </div>
+  <div class="review-list" id="review-list"></div>
+  <div class="btn-row" style="margin-top:28px">
+    <button class="btn btn-primary" onclick="showScreen('home')">← Main menu</button>
+    <button class="btn btn-secondary" onclick="retryWrong()">Retry wrong answers</button>
+    <button class="btn btn-ghost" onclick="startTest(true)">New test</button>
+  </div>
+</div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal-card">
+    <h3>Leave test?</h3>
+    <p>You have an active test. Are you sure you want to leave? Your progress will be lost.</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="confirmLeave()">Yes, leave</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Keep going</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOPICS=[
+  {id:'intro',icon:'📖',title:'Introduction to Geography'},
+  {id:'carto',icon:'🗺️',title:'Cartography & Projections'},
+  {id:'solar',icon:'🌞',title:'Solar System & Earth Movements'},
+  {id:'atmo', icon:'🌤️',title:'Atmosphere & Climate'},
+  {id:'hydro',icon:'💧',title:'Hydrosphere'},
+  {id:'litho',icon:'🌋',title:'Lithosphere & Tectonics'},
+  {id:'pedo', icon:'🌱',title:'Pedosphere (Soils)'},
+];
+
+const Q=[
+{id:1,topic:'intro',diff:1,type:'mc',text:'What does the word "geography" literally mean?',opts:['Measurement of Earth','Description of Earth','Drawing of the world','Knowledge of nature'],ans:1,exp:'GEO = Earth, GRÁPHO = to describe. Geography literally means "description of Earth".'},
+{id:2,topic:'intro',diff:1,type:'mc',text:'Who is considered the "father of geography"?',opts:['Strabo','Ptolemy','Eratosthenes','Alexander von Humboldt'],ans:2,exp:'Eratosthenes established geography as a separate discipline in his work Geographica.'},
+{id:3,topic:'intro',diff:1,type:'mc',text:'Who is described as the first great traveller in antiquity?',opts:['Ptolemy','Strabo','Magellan','Columbus'],ans:1,exp:'Strabo is regarded as the first great traveller of antiquity.'},
+{id:4,topic:'intro',diff:1,type:'mc',text:'The upper boundary of the landscape sphere is marked by the:',opts:['Tropopause at ~12 km','Ozone layer at 20–30 km','Exosphere at 10 000 km','Stratopause at 50 km'],ans:1,exp:'The upper boundary of the landscape sphere is the ozone layer, roughly 20–30 km above Earth\'s surface.'},
+{id:5,topic:'intro',diff:1,type:'mc',text:'The Mohorovičić discontinuity is the boundary between:',opts:['Troposphere and stratosphere','Earth\'s crust and mantle','Core and mantle','Inner and outer core'],ans:1,exp:'The Moho separates Earth\'s crust from the mantle, at a depth of roughly 30–35 km.'},
+{id:6,topic:'intro',diff:2,type:'mc',text:'What is the key difference between "continent" (geological) and "world part" (cultural)?',opts:['They are synonyms','Continent is geological; world part is a cultural/historical concept','A world part is always larger','A continent includes oceans'],ans:1,exp:'There are 6 geological continents but 7 world parts — e.g. Europe and Asia are one continent (Eurasia) but two world parts.'},
+{id:7,topic:'intro',diff:1,type:'tf',text:'All meridians are of equal length.',ans:true,exp:'Every meridian runs from pole to pole, so all meridians are the same length.'},
+{id:8,topic:'intro',diff:1,type:'mc',text:'The Prime Meridian (0°) passes through which observatory?',opts:['Paris Observatory','Royal Observatory Greenwich, London','Vatican Observatory','US Naval Observatory, Washington'],ans:1,exp:'The Prime Meridian passes through the Royal Observatory in Greenwich, London.'},
+{id:9,topic:'intro',diff:2,type:'mc',text:'A strait is:',opts:['An artificial canal connecting two seas','A narrow passage of ocean between two landmasses','A part of the ocean penetrating inland','A chain of islands separating two seas'],ans:1,exp:'A strait (prieliv) is a narrow body of water lying between two landmasses, e.g. the Strait of Gibraltar.'},
+{id:10,topic:'intro',diff:2,type:'mc',text:'Physical geography covers which spheres?',opts:['Population, settlements, industry','Lithosphere, atmosphere, hydrosphere, pedosphere, biosphere','Only lithosphere and atmosphere','Economics and transport'],ans:1,exp:'Physical geography includes: lithosphere (relief/rocks), atmosphere (climate), hydrosphere (water), pedosphere (soil), biosphere (organisms).'},
+{id:11,topic:'intro',diff:3,type:'fill',text:'The lower boundary of the landscape sphere is the ________ discontinuity, at a depth of ~30–35 km.',ans:['Mohorovicic','Mohorovičić','Moho'],exp:'The Mohorovičić (Moho) discontinuity marks the boundary between Earth\'s crust and mantle.'},
+{id:12,topic:'intro',diff:2,type:'mc',text:'After Humboldt and Darwin, geography shifted its focus to:',opts:['Making better military maps','Studying relationships between nature and human society','Exploring unknown continents','Describing new plant species'],ans:1,exp:'Once the whole world was explored, geography evolved from pure description to studying nature–society relationships.'},
+{id:13,topic:'intro',diff:1,type:'mc',text:'Moving east from the Prime Meridian you should:',opts:['Set your clock back (minus hours)','Set your clock forward (plus hours)','Subtract a full calendar day','Time stays the same'],ans:1,exp:'East of the Prime Meridian = plus hours; west = minus hours.'},
+{id:14,topic:'intro',diff:2,type:'mc',text:'Human geography covers subjects such as:',opts:['Lithosphere, pedosphere, biosphere','Population, settlements, agriculture, industry, transport','Atmosphere, climate, weather','Ocean currents and tides'],ans:1,exp:'Human geography studies population, settlements, agriculture, industry, transport, tourism, culture and services.'},
+{id:15,topic:'intro',diff:3,type:'mc',text:'Eratosthenes wrote his foundational geographical work titled:',opts:['Natural History','Geographica','Almagest','Metamorphoses'],ans:1,exp:'Eratosthenes\' Geographica established geography as a distinct scientific discipline in antiquity.'},
+
+{id:16,topic:'carto',diff:1,type:'mc',text:'What is cartography?',opts:['Study of weather patterns','Science of projecting Earth\'s spherical surface onto a flat map','Study of ocean currents','Art of making compasses'],ans:1,exp:'Cartography is the science of representing Earth\'s curved surface on a flat plane, necessarily involving some distortion.'},
+{id:17,topic:'carto',diff:1,type:'mc',text:'An atlas is:',opts:['A type of map projection','A collection of maps organised by topic','A map scale system','A satellite imagery database'],ans:1,exp:'An atlas is a collection of maps sorted according to topics.'},
+{id:18,topic:'carto',diff:2,type:'mc',text:'For mathematical calculations, Earth\'s shape is approximated as:',opts:['A perfect sphere','An ellipsoid (with radius ~6 378 km at the equator)','A cylinder','A flat disk'],ans:1,exp:'The true shape is a geoid, but an ellipsoid is used for geodetic calculations because the math is tractable.'},
+{id:19,topic:'carto',diff:2,type:'mc',text:'Mercator\'s cylindrical projection preserves:',opts:['Areas','Distances','Angles (useful for navigation)','Elevations'],ans:2,exp:'Mercator preserves angles (conformal projection), making compass bearings appear as straight lines — invaluable for sailors. Areas are heavily distorted.'},
+{id:20,topic:'carto',diff:2,type:'mc',text:'Lambert\'s cylindrical projection preserves:',opts:['Angles','Distances','Areas (equal-area projection)','Colours'],ans:2,exp:'Lambert\'s equal-area cylindrical projection preserves area ratios.'},
+{id:21,topic:'carto',diff:2,type:'mc',text:'Who developed the conical map projection?',opts:['Mercator','Lambert','Ptolemy','Eratosthenes'],ans:2,exp:'Ptolemy discovered the conical map projection in Greco-Roman antiquity.'},
+{id:22,topic:'carto',diff:1,type:'mc',text:'The oldest surviving globe, "Erdapfel", was made in:',opts:['1395','1492','1528','1620'],ans:1,exp:'The Erdapfel ("earth apple") was crafted by Martin Behaim in 1492 — the oldest surviving globe.'},
+{id:23,topic:'carto',diff:2,type:'mc',text:'Samuel Mikoviny was notable for:',opts:['Discovering America','Creating maps of Hungarian counties and mining maps','Inventing the printing press','Founding the Vienna Cartographic School'],ans:1,exp:'Mikoviny was the chief cartographer of the Kingdom of Hungary, famous for county maps and detailed mining maps of Slovakia.'},
+{id:24,topic:'carto',diff:2,type:'mc',text:'LIDAR surveys landscapes using:',opts:['Ocean sonar waves','Laser beams that detect even tiny elevation differences','Infrared camera imagery','Radio waves from weather balloons'],ans:1,exp:'LIDAR (Light Detection And Ranging) fires laser pulses and measures return times to build highly accurate terrain models.'},
+{id:25,topic:'carto',diff:1,type:'mc',text:'A choropleth map uses:',opts:['Contour lines for elevation','Colour intensity to represent data values across areas','Arrows showing wind direction','Pictograms for land use'],ans:1,exp:'A choropleth map shades areas in proportion to a statistical variable (e.g. population density, GDP).'},
+{id:26,topic:'carto',diff:2,type:'mc',text:'The first map of the Kingdom of Hungary/Austria is known as:',opts:['Mikoviny\'s map','The Layar map (1528)','Ptolemy\'s map of Europe','The Erdapfel globe'],ans:1,exp:'The Layar map (1528) is considered the first map of the territory of present-day Austria-Hungary.'},
+{id:27,topic:'carto',diff:3,type:'mc',text:'Infrared satellite imagery can distinguish vegetation from bare rock because:',opts:['Living matter reflects infrared radiation very differently from rock or soil','Organic matter is always warmer than rock','Inorganic matter is invisible to infrared','Infrared only records animal body heat'],ans:0,exp:'Healthy vegetation strongly reflects near-infrared; bare soil and rock do not. This makes infrared remote sensing powerful for land-cover mapping and agricultural monitoring.'},
+{id:28,topic:'carto',diff:1,type:'mc',text:'The Landsat satellite programme primarily maps:',opts:['Weather systems','Earth\'s land surface cover','Submarine topography','Atmospheric ozone'],ans:1,exp:'Landsat is the longest-running satellite programme for monitoring and mapping Earth\'s land cover.'},
+{id:29,topic:'carto',diff:3,type:'mc',text:'A "large-scale" map (e.g. 1:10 000) shows:',opts:['A large area with little detail','A small area with great detail','Only cities','Only ocean bathymetry'],ans:1,exp:'Large-scale maps have a bigger representative fraction, covering small areas in high detail (e.g. city plans). Small-scale maps (e.g. 1:1 000 000) show large areas with less detail.'},
+
+{id:30,topic:'solar',diff:1,type:'mc',text:'According to the Big Bang Theory, the universe is approximately:',opts:['4.6 billion years old','10 billion years old','13.8 billion years old','20 billion years old'],ans:2,exp:'The Big Bang occurred ~13.8 billion years ago.'},
+{id:31,topic:'solar',diff:1,type:'mc',text:'The age of Earth and the Solar System is approximately:',opts:['2.5 billion years','4.55 billion years','6 billion years','13.8 billion years'],ans:1,exp:'Earth and the Solar System formed ~4.55 billion years ago from a cloud of interstellar dust and gas.'},
+{id:32,topic:'solar',diff:2,type:'mc',text:'Earth\'s axial tilt relative to the plane of the ecliptic is approximately:',opts:['15°','23.5°','45°','66.5°'],ans:1,exp:'The ~23.5° tilt causes the seasons and the existence of polar days/nights and the tropics/polar circles.'},
+{id:33,topic:'solar',diff:1,type:'mc',text:'Which planet is closest to the Sun?',opts:['Venus','Earth','Mercury','Mars'],ans:2,exp:'Mercury orbits closest to the Sun.'},
+{id:34,topic:'solar',diff:1,type:'mc',text:'Venus is sometimes called the "Morning Star" or "Evening Star" because:',opts:['It has the longest day','It is the brightest planet, visible near the horizon at dawn or dusk','It is closest to the Sun','It rotates in the same direction as Earth'],ans:1,exp:'Venus is the brightest planet visible to the naked eye, often seen just before sunrise or after sunset.'},
+{id:35,topic:'solar',diff:2,type:'mc',text:'At perihelion, Earth is:',opts:['Farthest from the Sun (speed ~29.9 km/s)','Closest to the Sun (speed ~30.3 km/s)','At the spring equinox position','Moving most slowly in its orbit'],ans:1,exp:'At perihelion Earth is nearest the Sun and moves fastest (~30.3 km/s). At aphelion it is farthest (~29.9 km/s).'},
+{id:36,topic:'solar',diff:2,type:'mc',text:'The sidereal month lasts approximately:',opts:['29.5 days (synodic month)','27 days 7 hours 43 minutes','24 hours','365 days'],ans:1,exp:'The sidereal month (~27 d 7 h 43 min) is the Moon\'s true orbital period around Earth. The synodic month (~29.5 d) is the lunar phase cycle.'},
+{id:37,topic:'solar',diff:1,type:'mc',text:'The vernal (spring) equinox occurs around:',opts:['21 December','21 June','20 March','23 September'],ans:2,exp:'The vernal equinox (~20 March) marks equal day and night globally as the Sun crosses the equator northward.'},
+{id:38,topic:'solar',diff:1,type:'mc',text:'Tides are caused primarily by:',opts:['Wind pushing ocean water','The Moon\'s gravitational pull on Earth\'s water (plus a smaller solar contribution)','Differences in water salinity','Underwater volcanic activity'],ans:1,exp:'The Moon\'s gravity is the dominant driver of ocean tides; the Sun contributes about 46% as much.'},
+{id:39,topic:'solar',diff:2,type:'mc',text:'Spring tides (highest range) occur when:',opts:['It is the spring season','The Moon is at first quarter','The Moon, Earth and Sun are aligned (new or full moon)','The Moon is at apogee'],ans:2,exp:'Spring tides occur ~every 15 days at new and full moon, when all three bodies align and gravitational forces reinforce each other.'},
+{id:40,topic:'solar',diff:2,type:'mc',text:'The International Date Line follows approximately the:',opts:['Prime Meridian (0°)','90° East meridian','180° meridian','Arctic Circle'],ans:2,exp:'The International Date Line (IDL) broadly follows the 180° meridian, with deviations to keep island groups on the same calendar day.'},
+{id:41,topic:'solar',diff:3,type:'mc',text:'Crossing the IDL from west to east means you:',opts:['Gain one day','Lose one day','Gain 12 hours','Nothing changes'],ans:1,exp:'Travelling west → east across the IDL subtracts one calendar day (e.g. 24 Oct becomes 23 Oct). East → west adds one day.'},
+{id:42,topic:'solar',diff:1,type:'mc',text:'The largest planet in the Solar System is:',opts:['Saturn','Uranus','Neptune','Jupiter'],ans:3,exp:'Jupiter is by far the largest planet, with a mass more than twice that of all other planets combined.'},
+{id:43,topic:'solar',diff:1,type:'tf',text:'The Moon produces its own light.',ans:false,exp:'The Moon only reflects sunlight. It generates no light of its own, which is also why we always see the same face — its rotation period equals its orbital period.'},
+{id:44,topic:'solar',diff:2,type:'mc',text:'Terrestrial (rocky) planets include:',opts:['Jupiter, Saturn, Uranus, Neptune','Mercury, Venus, Earth, Mars','Only Earth and Mars','Venus, Jupiter, Saturn, Earth'],ans:1,exp:'The four terrestrial (rocky-core) planets are Mercury, Venus, Earth and Mars. The gas/ice giants are Jupiter, Saturn, Uranus and Neptune.'},
+{id:45,topic:'solar',diff:2,type:'mc',text:'Proxima Centauri is the:',opts:['Centre of the Milky Way','Nearest star to the Sun','A moon of Neptune','Brightest star in the night sky'],ans:1,exp:'Proxima Centauri is the closest star to the Sun at ~4.24 light-years away.'},
+{id:46,topic:'solar',diff:2,type:'mc',text:'Halley\'s Comet is next expected near the Sun in:',opts:['2042','2061','2075','2099'],ans:1,exp:'Halley\'s Comet last appeared in 1986 and will next be visible from Earth in 2061.'},
+{id:47,topic:'solar',diff:3,type:'mc',text:'A sidereal day (Earth\'s rotation relative to stars) lasts:',opts:['Exactly 24 hours','23 h 56 min 4 s','25 hours','23 h 30 min'],ans:1,exp:'A sidereal day is 23 h 56 min 4 s. The solar day is 24 h because Earth also advances along its orbit and must rotate a little extra to face the Sun again.'},
+
+{id:48,topic:'atmo',diff:1,type:'mc',text:'Nitrogen makes up approximately what proportion of Earth\'s atmosphere?',opts:['21%','51%','78%','93%'],ans:2,exp:'N₂ = 78%, O₂ = 21%, Ar = 0.9%, then trace gases including CO₂, water vapour, ozone.'},
+{id:49,topic:'atmo',diff:1,type:'mc',text:'All weather phenomena occur in the:',opts:['Stratosphere','Mesosphere','Thermosphere','Troposphere'],ans:3,exp:'The troposphere (surface to ~12 km) contains almost all water vapour and is where all weather takes place.'},
+{id:50,topic:'atmo',diff:2,type:'mc',text:'The ozone layer is found in the:',opts:['Troposphere (0–12 km)','Stratosphere (20–30 km)','Mesosphere (50–90 km)','Thermosphere'],ans:1,exp:'The ozone layer sits in the stratosphere, ~20–30 km altitude, and absorbs most of the Sun\'s harmful UV-B and UV-C radiation.'},
+{id:51,topic:'atmo',diff:1,type:'mc',text:'Commercial aircraft cruise in the:',opts:['Troposphere','Stratosphere','Mesosphere','Thermosphere'],ans:1,exp:'Jets cruise in the lower stratosphere (~10–12 km), above most weather and turbulence.'},
+{id:52,topic:'atmo',diff:2,type:'mc',text:'Auroras (Northern/Southern Lights) form in the:',opts:['Troposphere','Stratosphere','Mesosphere','Thermosphere'],ans:3,exp:'Auroras are created in the thermosphere when energetic solar particles collide with atmospheric molecules.'},
+{id:53,topic:'atmo',diff:1,type:'mc',text:'Wind speed is measured by a(n):',opts:['Barometer','Hygrometer','Anemometer','Heliograph'],ans:2,exp:'An anemometer measures wind speed (usually in m/s).'},
+{id:54,topic:'atmo',diff:2,type:'mc',text:'The rain shadow effect is an area of low precipitation:',opts:['On the windward side of a mountain','On the leeward (downwind) side of a mountain, where air descends and warms','In low-lying coastal areas','Near large inland lakes'],ans:1,exp:'Moist air rises on the windward side, cools and precipitates. On the leeward side the now-dry air descends and warms, creating a rain shadow.'},
+{id:55,topic:'atmo',diff:2,type:'mc',text:'The world\'s highest average rainfall is recorded at Cherrapunji, India, due to:',opts:['Proximity to the Indian Ocean alone','Summer monsoon combined with the orographic (Himalayan) rain shadow effect','Cold sea currents offshore','Its location on the equator'],ans:1,exp:'Cherrapunji is squeezed between the moist summer monsoon and the wall of the Himalayas, causing extreme orographic precipitation.'},
+{id:56,topic:'atmo',diff:2,type:'mc',text:'The Atacama Desert is hyper-arid mainly because of:',opts:['High altitude alone','The Andes rain shadow plus the cold Humboldt (Peruvian) Current','Permanent equatorial high pressure','Its distance from any ocean'],ans:1,exp:'The Andes block moist Pacific air and the cold Humboldt Current suppresses evaporation, combining to make the Atacama the driest non-polar desert on Earth.'},
+{id:57,topic:'atmo',diff:2,type:'mc',text:'The Föhn is:',opts:['A cold, moist Atlantic wind','A warm, dry, powerful wind on the leeward side of high mountains','A cold katabatic wind from the Alps','A Mediterranean sea breeze'],ans:1,exp:'The Föhn descends the leeward slopes (Alps, Caucasus) after losing moisture on the windward side, arriving warm and very dry.'},
+{id:58,topic:'atmo',diff:3,type:'mc',text:'Temperature inversion means:',opts:['Normal temperature decrease with altitude','Cold air pooling in valleys/basins while air above is warmer — the opposite of the normal lapse rate','Stratospheric warming','Rapid pressure drop'],ans:1,exp:'In an inversion, dense cold air drains into valleys and basins. The overlying air is warmer, trapping pollutants and fog below the inversion layer.'},
+{id:59,topic:'atmo',diff:2,type:'mc',text:'The Coriolis effect deflects air currents in the Northern Hemisphere:',opts:['To the left','To the right','Upward','It has no effect above 30°N'],ans:1,exp:'In the Northern Hemisphere the Coriolis force turns moving air to the right (to the left in the Southern Hemisphere).'},
+{id:60,topic:'atmo',diff:1,type:'tf',text:'Climate refers to long-term average atmospheric conditions, while weather refers to short-term conditions.',ans:true,exp:'Correct. Climate = 30-year averages of temperature, precipitation, etc. Weather = the current or near-term atmospheric state.'},
+{id:61,topic:'atmo',diff:2,type:'mc',text:'The warm Gulf Stream most strongly affects the climate of:',opts:['The eastern coast of North America','Western and north-western Europe','Japan\'s Pacific coast','Southern Africa'],ans:1,exp:'The Gulf Stream transports warm tropical water north-east, keeping Western and north-western Europe far milder than their latitudes would otherwise allow.'},
+{id:62,topic:'atmo',diff:3,type:'mc',text:'CFCs (freons) and methane are responsible for:',opts:['Causing acid rain','Depleting the stratospheric ozone layer','Strengthening the ozone layer','Reducing atmospheric CO₂'],ans:1,exp:'CFC molecules drift to the stratosphere where UV light releases chlorine atoms that catalytically destroy ozone, forming the ozone holes observed especially over Antarctica.'},
+{id:63,topic:'atmo',diff:2,type:'mc',text:'The Bora wind is:',opts:['A hot desert wind in North Africa','A swift, cold northerly wind descending to the Adriatic coast','A tropical cyclone in the Bay of Bengal','A warm foehn-type wind of the Balkans'],ans:1,exp:'The Bora is a cold, dry, gusty wind that blows from the Dinaric Alps down to the Adriatic coast (notably Croatia and Montenegro).'},
+
+{id:64,topic:'hydro',diff:1,type:'mc',text:'Approximately what share of Earth\'s surface is covered by water?',opts:['50.8%','60.5%','70.8%','80.2%'],ans:2,exp:'Water covers 70.8% of Earth\'s surface, giving the planet its blue appearance from space.'},
+{id:65,topic:'hydro',diff:2,type:'mc',text:'Where is most of Earth\'s fresh water stored?',opts:['Rivers and lakes','Glaciers and ice sheets (~68% of all fresh water)','Groundwater aquifers','The atmosphere'],ans:1,exp:'About 68% of all fresh water is locked in glaciers and ice caps. Around 30% is groundwater; less than 1% is surface water.'},
+{id:66,topic:'hydro',diff:1,type:'mc',text:'Average ocean salinity is approximately:',opts:['10‰','25‰','35‰','50‰'],ans:2,exp:'The world ocean averages ~35 g of dissolved salts per litre (35‰ or 3.5%).'},
+{id:67,topic:'hydro',diff:2,type:'mc',text:'Which sea has the highest salinity?',opts:['Baltic Sea (~8‰)','Mediterranean Sea (~38‰)','Red Sea (~41‰)','Black Sea (~18‰)'],ans:2,exp:'The Red Sea (~41‰) is the saltiest sea due to high evaporation and almost no freshwater river input. The Baltic (~8‰) is the least saline.'},
+{id:68,topic:'hydro',diff:1,type:'mc',text:'The largest and deepest ocean on Earth is the:',opts:['Atlantic','Indian','Pacific','Arctic'],ans:2,exp:'The Pacific Ocean is the largest and deepest, covering roughly one-third of Earth\'s total surface.'},
+{id:69,topic:'hydro',diff:2,type:'mc',text:'The deepest point on Earth is Challenger Deep in the:',opts:['Atlantic — Puerto Rico Trench','Pacific — Mariana Trench (10 984 m)','Indian Ocean — Java Trench','Arctic Ocean'],ans:1,exp:'Challenger Deep in the Mariana Trench is the deepest known point at ~10 984 m below sea level.'},
+{id:70,topic:'hydro',diff:2,type:'mc',text:'A river delta is:',opts:['The river\'s source area','A branched mouth where a river splits into distributaries entering a sea or lake','A funnel-shaped estuary','A point where two rivers meet'],ans:1,exp:'Deltas form where a river deposits sediment at its mouth, creating a fan-shaped network of distributaries (e.g. Nile, Amazon, Danube, Lena deltas).'},
+{id:71,topic:'hydro',diff:2,type:'mc',text:'The world\'s largest lake by surface area is:',opts:['Lake Baikal','Lake Tanganyika','The Caspian Sea','Lake Superior'],ans:2,exp:'The Caspian Sea is technically an enclosed lake and is the world\'s largest by surface area at ~371 000 km².'},
+{id:72,topic:'hydro',diff:1,type:'mc',text:'The world\'s deepest lake is:',opts:['Lake Tanganyika','Lake Baikal (1 642 m)','Lake Titicaca','Lake Ladoga'],ans:1,exp:'Lake Baikal in Siberia is the deepest lake on Earth (1 642 m) and holds ~20% of the world\'s unfrozen surface fresh water.'},
+{id:73,topic:'hydro',diff:3,type:'mc',text:'Lake Nyos in Cameroon is dangerous because:',opts:['It harbours many large crocodiles','It is a maar volcano crater lake that can suddenly release massive CO₂ clouds (limnic eruption)','Its extreme salinity causes rapid drowning','It regularly floods surrounding villages'],ans:1,exp:'A 1986 limnic eruption at Nyos released a massive CO₂ cloud that suffocated ~1 800 people and thousands of animals in nearby villages.'},
+{id:74,topic:'hydro',diff:2,type:'mc',text:'Artesian groundwater is:',opts:['Any spring water with dissolved minerals','Fossil water confined under pressure between impermeable rock layers, rising naturally when tapped','Thermal water above 25°C','Rainwater collected in limestone caverns'],ans:1,exp:'Artesian water is under natural hydraulic pressure between impermeable layers, so it rises to the surface or can be extracted by drilling. Australia has the world\'s largest artesian basin.'},
+{id:75,topic:'hydro',diff:2,type:'mc',text:'The Morava and Danube rivers meet near:',opts:['Bratislava city centre','Devin Castle','Komárno','Štúrovo'],ans:1,exp:'The Morava flows into the Danube at the foot of Devin Castle, just west of Bratislava.'},
+{id:76,topic:'hydro',diff:3,type:'mc',text:'Slovakia\'s largest groundwater reserves are located on:',opts:['The High Tatras region','Rye Island (Žitný ostrov) in the Danubian Lowland','Slovak Karst','Záhorie Lowland'],ans:1,exp:'Žitný ostrov (Rye Island) sits atop one of Central Europe\'s largest freshwater groundwater reserves.'},
+{id:77,topic:'hydro',diff:2,type:'mc',text:'A monsoon drain regime shows:',opts:['Maximum flow in winter, minimum in summer','Maximum in summer (wet monsoon), minimum in winter (dry monsoon)','Constant flow year-round','Maximum in spring from snowmelt only'],ans:1,exp:'Monsoon rivers (e.g. Ganges, Mekong) flood during the summer wet monsoon and fall dramatically during the dry winter monsoon.'},
+{id:78,topic:'hydro',diff:2,type:'mc',text:'The largest alpine glacier in continental Europe is:',opts:['Aletsch (Switzerland)','Mer de Glace (France)','Jostedalsbreen (Norway)','Vatnajökull (Iceland)'],ans:2,exp:'Jostedalsbreen in Norway is the largest alpine glacier in continental Europe. Vatnajökull is on Iceland, which is sometimes not counted as continental.'},
+{id:79,topic:'hydro',diff:1,type:'tf',text:'97.4% of all water on Earth is found in the oceans.',ans:true,exp:'Correct — 97.4% is salt water in the oceans. Only 2.5% of Earth\'s water is fresh.'},
+{id:80,topic:'hydro',diff:3,type:'mc',text:'A glacial drain regime (e.g. the Rhône) has its flow maximum in:',opts:['Winter, because meltwater is stored as ice in summer','Late summer, when high-altitude glaciers finally melt','Spring, from low-altitude snowmelt','Autumn, from seasonal rains'],ans:1,exp:'Glacial rivers peak late in the warm season — high-altitude glaciers don\'t melt significantly until sustained summer heat arrives.'},
+
+{id:81,topic:'litho',diff:1,type:'mc',text:'The lithosphere consists of:',opts:['Only the crust','Earth\'s crust plus the uppermost rigid mantle','The entire mantle','The mantle and outer core'],ans:1,exp:'Lithosphere = crust + uppermost rigid mantle. It floats on the ductile asthenosphere below.'},
+{id:82,topic:'litho',diff:1,type:'mc',text:'The temperature of Earth\'s solid inner core is approximately:',opts:['1 000°C','3 000°C','6 000°C','12 000°C'],ans:2,exp:'The inner core temperature is ~6 000°C. It is solid despite this extreme heat because of the enormous pressure; it consists mainly of iron and nickel (NiFe).'},
+{id:83,topic:'litho',diff:2,type:'mc',text:'The asthenosphere is:',opts:['The rigid outer mantle','A partially molten, ductile mantle layer on which tectonic plates move','The boundary between crust and mantle','The liquid outer core'],ans:1,exp:'The asthenosphere is the hot, weak zone of the upper mantle that allows the overlying lithospheric plates to move.'},
+{id:84,topic:'litho',diff:2,type:'mc',text:'When two continental plates collide, the result is typically:',opts:['Ocean trenches','Volcanic island arcs','Fold mountain ranges (e.g. Himalayas)','Mid-ocean ridges'],ans:2,exp:'Continental–continental collision compresses and thickens the crust, forming fold mountain belts such as the Himalayas (India vs. Eurasia).'},
+{id:85,topic:'litho',diff:2,type:'mc',text:'The "Ring of Fire" is:',opts:['A volcanic chain around Iceland','A subduction/volcanic belt encircling the Pacific Ocean','The main volcanic arc of Africa','The Andean volcanic chain only'],ans:1,exp:'The Ring of Fire accounts for over 75% of the world\'s earthquakes and surrounds the Pacific with subduction zones and volcanic arcs (Japan, Indonesia, Peru, etc.).'},
+{id:86,topic:'litho',diff:2,type:'mc',text:'The hypocentre of an earthquake is:',opts:['The point on Earth\'s surface directly above the rupture','The actual underground focus/rupture point','A seismic monitoring station','The wave front that travels fastest'],ans:1,exp:'The hypocentre (focus) is where the earthquake rupture originates underground. The epicentre is its surface projection.'},
+{id:87,topic:'litho',diff:1,type:'mc',text:'Earthquake magnitude is recorded by a seismograph and expressed on the:',opts:['Fujita scale','Richter scale (0–9)','Beaufort scale','Mohs scale'],ans:1,exp:'The Richter magnitude scale (0–9) quantifies the energy released by an earthquake as measured by seismographs.'},
+{id:88,topic:'litho',diff:2,type:'mc',text:'Metamorphic rocks (e.g. marble, gneiss) form when:',opts:['Magma cools and solidifies','Sediment is deposited and compacted','Existing rocks are transformed by heat and/or pressure below the surface','Minerals precipitate from seawater'],ans:2,exp:'Metamorphism occurs when any rock type is subjected to elevated temperature and/or pressure, changing its texture and mineralogy without melting it.'},
+{id:89,topic:'litho',diff:2,type:'mc',text:'A geological hotspot is:',opts:['Any active plate boundary','A mantle plume that delivers magma to the surface independent of plate boundaries','A subduction zone','A high-geothermal-gradient polar region'],ans:1,exp:'Hotspots (Hawaii, Iceland, Galápagos) are fed by mantle plumes from deep in the mantle, unrelated to plate boundaries. As the plate moves over a stationary hotspot, a chain of volcanoes forms.'},
+{id:90,topic:'litho',diff:3,type:'mc',text:'Which are Slovak volcanic mountain ranges?',opts:['Low Tatras, Malá Fatra','Beskydy, White Carpathians','Javorie, Poľana, Vtáčnik, Štiavnické vrchy, Vihorlatské vrchy','Tatra, Fatra, Western Carpathians'],ans:2,exp:'Slovakia\'s volcanic highlands: Javorie (Zvolen), Poľana (Detva), Vtáčnik (Prievidza), Štiavnické vrchy, Vihorlatské vrchy, Kremnické vrchy.'},
+{id:91,topic:'litho',diff:2,type:'mc',text:'A shield volcano is characterised by:',opts:['Steep cone and violent explosions','Broad gentle slopes and fast-flowing, low-viscosity basaltic lava (e.g. Mauna Loa)','A maar crater filled with water','Submarine ridge formation only'],ans:1,exp:'Shield volcanoes (Mauna Loa, Kilauea, Hekla) have wide, gently sloping flanks built from fluid basaltic eruptions.'},
+{id:92,topic:'litho',diff:2,type:'mc',text:'A stratovolcano (composite volcano) is characterised by:',opts:['Wide, gentle slopes and thin lava flows','Steep cone of alternating ash layers and solidified lava (e.g. Vesuvius, Etna, Fuji, Krakatoa)','A single massive lava shield','Submarine eruptions only'],ans:1,exp:'Stratovolcanoes alternate between explosive ash eruptions and lava flows, building a tall, steep-sided cone.'},
+{id:93,topic:'litho',diff:3,type:'mc',text:'Pangaea broke into Laurasia and Gondwana during the:',opts:['Palaeozoic Era','Mesozoic Era','Cenozoic Era','Neogene Period'],ans:1,exp:'Pangaea split into Laurasia (N. America + Eurasia) and Gondwana (Africa, S. America, Antarctica, Australia, India) during the Mesozoic.'},
+{id:94,topic:'litho',diff:2,type:'mc',text:'The Mid-Atlantic Ridge is a:',opts:['Subduction zone (convergent boundary)','Transform fault boundary','Divergent boundary where new ocean floor is created','Collision zone forming mountains'],ans:2,exp:'The Mid-Atlantic Ridge is a divergent boundary — the Americas and Eurasia/Africa pull apart, and magma wells up to create new oceanic crust.'},
+{id:95,topic:'litho',diff:2,type:'mc',text:'Sedimentary rocks such as limestone, sandstone and conglomerate form by:',opts:['Magma cooling at depth','Metamorphism of existing rocks','Accumulation and compaction of particles (sand, shells, pebbles)','Rapid cooling of volcanic lava'],ans:2,exp:'Sedimentary rocks are formed by deposition, compaction and cementation of particles over time. They often preserve fossils.'},
+{id:96,topic:'litho',diff:3,type:'mc',text:'Which country has the LOWEST seismic risk?',opts:['Japan','Greece','Finland','Indonesia'],ans:2,exp:'Finland (and similarly Brazil, Greenland, Belarus, the UK) sits on an ancient geological shield far from any active plate boundary, giving it very low seismic risk.'},
+{id:97,topic:'litho',diff:2,type:'mc',text:'The San Andreas Fault is a:',opts:['Subduction zone (convergent)','Divergent boundary','Transform fault — plates slide horizontally past each other','Volcanic hotspot chain'],ans:2,exp:'The San Andreas Fault is a transform boundary between the Pacific Plate (moving NW) and the North American Plate.'},
+{id:98,topic:'litho',diff:3,type:'fill',text:'The ancient, stable core of a tectonic plate, composed of igneous and metamorphic rocks, is called a ________.',ans:['shield','craton'],exp:'Shields (cratons) are the oldest, most stable parts of tectonic plates, made of Precambrian crystalline basement rocks.'},
+
+{id:99,topic:'pedo',diff:1,type:'mc',text:'Pedology is the scientific study of:',opts:['Plant diseases','Soils in general','The spatial distribution of soils (that is pedogeography)','Child development'],ans:1,exp:'Pedology studies soils as natural bodies. Pedogeography specifically focuses on the distribution of soils and their relationships with other geospheres.'},
+{id:100,topic:'pedo',diff:1,type:'mc',text:'Humus is the ________ component of soil.',opts:['organic (decomposed plant/animal remains)','mineral (rock particles)','liquid (soil water)','gaseous (soil air)'],ans:0,exp:'Humus is the organic fraction of soil, formed by the decomposition of plant and animal remains. It darkens the soil and is key to fertility.'},
+{id:101,topic:'pedo',diff:2,type:'mc',text:'The most fertile soils on Earth are:',opts:['Podzols (taiga)','Ferralsols/Laterites (tropical rainforest)','Chernozems (black earths of temperate steppes)','Tundra soils'],ans:2,exp:'Chernozems have deep, dark, humus-rich A horizons — they are the world\'s most productive agricultural soils, found on Ukrainian/Russian/Canadian steppes.'},
+{id:102,topic:'pedo',diff:2,type:'mc',text:'Podzols develop under:',opts:['Tropical rainforests','Coniferous boreal (taiga) forests — they are grey, acidic and infertile','Temperate grasslands','Coastal wetlands'],ans:1,exp:'Podzols form under the taiga (boreal forests) of Russia, Scandinavia and Canada. They are highly leached, pale grey and low in nutrients.'},
+{id:103,topic:'pedo',diff:3,type:'mc',text:'Soil horizon B (illuvial horizon) is:',opts:['Where organic matter accumulates','An enrichment zone where minerals (Fe, Al, clay) leached from above accumulate — colour set by these minerals','The unweathered parent rock','Compact bedrock below the soil'],ans:1,exp:'Horizon B is where materials eluviated from A accumulate. Fe gives a reddish colour; Al compounds give grey-brown tones.'},
+{id:104,topic:'pedo',diff:2,type:'mc',text:'The most fertile medium-textured soils in Slovakia are found in the:',opts:['High Tatras','Danubian, East Slovak and South Slovak lowlands','Central Slovak highlands','Záhorie sandy lowland'],ans:1,exp:'Slovakia\'s best agricultural soils are loess-derived medium-textured (silty) soils in the Danubian Lowland, East Slovak Lowland and South Slovak Basin.'},
+{id:105,topic:'pedo',diff:3,type:'mc',text:'Tropical rainforest soils (Oxisols/Ferralsols) are:',opts:['Deep, dark and very fertile','Red, iron-rich, intensely weathered, acidic and nutrient-poor — threatened by deforestation','Black with high humus content','Light-coloured and alkaline'],ans:1,exp:'Despite lush vegetation, Amazonian/Congolese soils are nutrient-poor — most nutrients are locked in biomass, not the soil. Clearing destroys this cycle quickly.'},
+{id:106,topic:'pedo',diff:2,type:'mc',text:'Terra rossa soils are associated with:',opts:['Arctic tundra','Mediterranean climate zones (olives, grapes, dates, citrus)','Temperate steppe grasslands','Boreal coniferous forests'],ans:1,exp:'Terra rossa is a red, calcium-rich, shallow soil found in Mediterranean climate areas. It supports olives, grapevines, dates and citrus despite its thin humus layer.'},
+{id:107,topic:'pedo',diff:1,type:'mc',text:'Soil texture is classified by:',opts:['Colour','Age of the parent rock','Grain size — sand (0.05–2 mm), silt (0.002–0.05 mm), clay (<0.002 mm)','Depth of the A horizon'],ans:2,exp:'Soil texture describes the particle-size distribution. Sandy soils drain fast; clay soils retain water and are heaviest to cultivate.'},
+{id:108,topic:'pedo',diff:3,type:'fill',text:'The capacity of soil to provide plants and organisms with a healthy, productive growing environment is called soil ________.',ans:['fertility','bonity','bonita'],exp:'Soil fertility (bonita/bonity) is the most important soil property — the ability to sustain plant growth and ecosystem productivity.'},
+{id:109,topic:'pedo',diff:2,type:'mc',text:'Fluvisols (alluvial soils near rivers with high groundwater) are:',opts:['Found in high alpine zones','Located in river floodplains with high groundwater — often very fertile','Found in dry deserts','Typical of arctic permafrost regions'],ans:1,exp:'Fluvisols and related alluvial soils form in river floodplains. With high groundwater and nutrient-rich deposits, they are often very productive farmland.'},
+{id:110,topic:'pedo',diff:2,type:'mc',text:'Rendzinas (shallow soils on limestone) are typically found in:',opts:['Sandy coastal dunes','Volcanic lava fields','Karst limestone areas','Marine sediment plains'],ans:2,exp:'Rendzinas form directly on limestone bedrock in karst terrain. They are shallow but rich in calcium carbonate.'},
+];
+
+/* ── STATE ── */
+let S={
+  selectedTopics:TOPICS.map(t=>t.id),
+  settings:{timer:false,shuffle:false,hard:false},
+  questions:[],current:0,
+  answers:[],
+  timer:null,timerVal:20,
+  startTime:null,
+  pendingAction:null,
+  selMC:null,selTF:null,
+};
+
+/* ── INIT ── */
+function init(){
+  document.getElementById('topics-grid').innerHTML=TOPICS.map(t=>`
+    <div class="topic-card selected" id="tc-${t.id}" onclick="toggleTopic('${t.id}')">
+      <div class="tc-icon">${t.icon}</div>
+      <div class="tc-title">${t.title}</div>
+      <div class="tc-count">${Q.filter(q=>q.topic===t.id).length} questions</div>
+      <div class="tc-check">✓</div>
+    </div>`).join('');
+}
+
+function toggleTopic(id){
+  const idx=S.selectedTopics.indexOf(id);
+  if(idx>=0) S.selectedTopics.splice(idx,1); else S.selectedTopics.push(id);
+  document.getElementById('tc-'+id).classList.toggle('selected');
+}
+function toggleSetting(k){
+  S.settings[k]=!S.settings[k];
+  document.getElementById('sp-'+k).classList.toggle('active',S.settings[k]);
+}
+
+/* ── BUILD POOL ── */
+function buildPool(wrongOnly=false){
+  let pool=wrongOnly
+    ? S.answers.filter(a=>a.status!=='correct').map(a=>Q.find(q=>q.id===a.id)).filter(Boolean)
+    : Q.filter(q=>S.selectedTopics.includes(q.topic));
+  if(S.settings.hard) pool=pool.filter(q=>q.diff===3);
+  if(!pool.length) pool=Q.filter(q=>S.selectedTopics.includes(q.topic));
+  if(S.settings.shuffle) pool=shuf(pool);
+  return pool.slice(0,wrongOnly?pool.length:30);
+}
+function shuf(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ── START ── */
+function startTest(all=false,wrongOnly=false){
+  if(S.questions.length&&S.current>0&&S.current<S.questions.length){
+    S.pendingAction={all,wrongOnly};
+    document.getElementById('modal-bg').classList.add('open'); return;
+  }
+  _start(all,wrongOnly);
+}
+function confirmLeave(){closeModal();const{all,wrongOnly}=S.pendingAction||{};_start(all,wrongOnly);}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
+function _start(all,wrongOnly){
+  if(all) S.selectedTopics=TOPICS.map(t=>t.id);
+  if(!S.selectedTopics.length) S.selectedTopics=TOPICS.map(t=>t.id);
+  S.questions=buildPool(wrongOnly);
+  S.current=0; S.answers=[]; S.startTime=Date.now();
+  S.selMC=null; S.selTF=null;
+  renderStreak(); updateHeader();
+  showScreen('test'); loadQ();
+}
+function retryWrong(){
+  if(!S.answers.filter(a=>a.status!=='correct').length){_start(false,false);return;}
+  S.pendingAction={all:false,wrongOnly:true};
+  if(S.questions.length&&S.current>0&&S.current<S.questions.length){
+    document.getElementById('modal-bg').classList.add('open'); return;
+  }
+  _start(false,true);
+}
+
+/* ── LOAD QUESTION ── */
+function loadQ(){
+  if(S.current>=S.questions.length){endTest();return;}
+  const q=S.questions[S.current];
+  document.getElementById('q-progress').style.width=(S.current/S.questions.length*100)+'%';
+  document.getElementById('q-frac').textContent=`${S.current+1} / ${S.questions.length}`;
+  document.getElementById('q-badge').textContent=`Q${S.current+1}`;
+  document.getElementById('q-topic-tag').textContent=TOPICS.find(t=>t.id===q.topic)?.title||'';
+  document.getElementById('q-type-tag').textContent={mc:'Multiple choice',tf:'True / False',fill:'Fill in blank'}[q.type]||'';
+  document.getElementById('q-diff').innerHTML=[1,2,3].map(d=>`<div class="diff-dot${q.diff>=d?' on':''}"></div>`).join('');
+  const card=document.getElementById('q-card');
+  card.classList.remove('fade-in'); void card.offsetWidth; card.classList.add('fade-in');
+  document.getElementById('q-text').textContent=q.text;
+  renderInput(q);
+  document.getElementById('next-btn').disabled=true;
+  S.selMC=null; S.selTF=null;
+  if(S.settings.timer) startTimer();
+}
+
+/* ── RENDER INPUT ── */
+function renderInput(q){
+  const area=document.getElementById('q-input-area');
+  if(q.type==='mc'){
+    area.innerHTML=`<div class="options">${q.opts.map((o,i)=>`
+      <button class="option" onclick="selMC(this,${i})" data-i="${i}">
+        <div class="option-key">${'ABCD'[i]}</div>
+        <div class="option-text">${o}</div>
+      </button>`).join('')}</div>`;
+  } else if(q.type==='tf'){
+    area.innerHTML=`<div class="tf-options">
+      <button class="tf-btn" onclick="selTF(this,true)">✓&nbsp; True</button>
+      <button class="tf-btn" onclick="selTF(this,false)">✗&nbsp; False</button>
+    </div>`;
+  } else if(q.type==='fill'){
+    area.innerHTML=`<input class="fill-input" id="fill-inp" placeholder="Type your answer…" autocomplete="off" oninput="onFill()">
+    <div class="fill-hint">Press Next when ready — you'll see the correct answer at the end.</div>`;
+    setTimeout(()=>document.getElementById('fill-inp')?.focus(),80);
+  }
+}
+
+/* ── SELECTION (no verdict) ── */
+function selMC(el,i){
+  document.querySelectorAll('.option').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected'); S.selMC=i;
+  document.getElementById('next-btn').disabled=false;
+}
+function selTF(el,v){
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected'); S.selTF=v;
+  document.getElementById('next-btn').disabled=false;
+}
+function onFill(){
+  document.getElementById('next-btn').disabled=!(document.getElementById('fill-inp')?.value.trim());
+}
+
+/* ── SUBMIT & NEXT ── */
+function submitAndNext(){
+  stopTimer();
+  const q=S.questions[S.current];
+  let correct=false,userAns='';
+  if(q.type==='mc'){
+    if(S.selMC===null){skipQuestion();return;}
+    correct=S.selMC===q.ans; userAns=q.opts[S.selMC];
+  } else if(q.type==='tf'){
+    if(S.selTF===null){skipQuestion();return;}
+    correct=S.selTF===q.ans; userAns=S.selTF?'True':'False';
+  } else if(q.type==='fill'){
+    userAns=(document.getElementById('fill-inp')?.value||'').trim();
+    correct=q.ans.some(a=>userAns.toLowerCase()===a.toLowerCase()||userAns.toLowerCase().includes(a.toLowerCase()));
+  }
+  S.answers.push({id:q.id,status:correct?'correct':'wrong',userAns,q});
+  markDot(S.current,correct);
+  S.current++; updateHeader(); loadQ();
+}
+function skipQuestion(){
+  stopTimer();
+  S.answers.push({id:S.questions[S.current].id,status:'skipped',userAns:null,q:S.questions[S.current]});
+  markDot(S.current,null);
+  S.current++; updateHeader(); loadQ();
+}
+
+/* ── STREAK BAR ── */
+function renderStreak(){
+  const n=Math.min(S.questions.length||30,30);
+  document.getElementById('streak-bar').innerHTML=Array.from({length:n},(_,i)=>`<div class="streak-dot" id="sd-${i}"></div>`).join('');
+}
+function markDot(i,ok){
+  const d=document.getElementById('sd-'+i); if(!d) return;
+  if(ok===null){d.style.background='var(--bg4)';d.style.borderColor='var(--border)';}
+  else if(ok){d.style.background='var(--green)';d.style.borderColor='rgba(63,185,122,.4)';}
+  else{d.style.background='var(--red)';d.style.borderColor='rgba(224,90,90,.4)';}
+}
+
+/* ── TIMER ── */
+function startTimer(){
+  S.timerVal=20;
+  const ring=document.getElementById('timer-ring');
+  ring.style.display='flex'; ring.classList.remove('urgent');
+  document.getElementById('timer-display').textContent=20;
+  clearInterval(S.timer);
+  S.timer=setInterval(()=>{
+    S.timerVal--;
+    document.getElementById('timer-display').textContent=S.timerVal;
+    if(S.timerVal<=5) ring.classList.add('urgent');
+    if(S.timerVal<=0){clearInterval(S.timer);skipQuestion();}
+  },1000);
+}
+function stopTimer(){clearInterval(S.timer);document.getElementById('timer-ring').style.display='none';}
+
+/* ── HEADER ── */
+function updateHeader(){
+  document.getElementById('hs-q').textContent=S.current>0?`${S.current}/${S.questions.length}`:'—';
+  document.getElementById('hs-answered').textContent=S.answers.length;
+  document.getElementById('hs-tw').style.display=S.settings.timer?'block':'none';
+}
+
+/* ── END ── */
+function endTest(){stopTimer();buildResults();showScreen('results');}
+
+/* ── RESULTS ── */
+function buildResults(){
+  const total=S.answers.length;
+  const cor=S.answers.filter(a=>a.status==='correct').length;
+  const wrg=S.answers.filter(a=>a.status==='wrong').length;
+  const skp=S.answers.filter(a=>a.status==='skipped').length;
+  const pct=total?Math.round(cor/total*100):0;
+  document.getElementById('res-pct').textContent=pct+'%';
+  const fill=document.getElementById('ring-fill');
+  const col=pct>=75?'var(--green)':pct>=50?'var(--gold)':'var(--red)';
+  fill.style.stroke=col;
+  setTimeout(()=>{fill.style.strokeDashoffset=339.3*(1-pct/100);},80);
+  let grade,gCls,msg;
+  if(pct>=90){grade='A — Excellent';gCls='grade-A';msg='Outstanding! You know your geography. 🏆';}
+  else if(pct>=75){grade='B — Good';gCls='grade-B';msg='Good result. A bit more revision and you\'ll be perfect.';}
+  else if(pct>=60){grade='C — Average';gCls='grade-C';msg='Not bad, but there\'s room to improve. Keep studying!';}
+  else{grade='D — Needs work';gCls='grade-D';msg='Don\'t give up — review the topics and try again. 💪';}
+  document.getElementById('res-grade').textContent=grade;
+  document.getElementById('res-grade').className='results-grade '+gCls;
+  document.getElementById('res-msg').textContent=msg;
+  const el=Math.floor((Date.now()-S.startTime)/1000);
+  document.getElementById('res-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)">${cor}</div><div class="stat-lbl">Correct</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--red)">${wrg}</div><div class="stat-lbl">Wrong</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--text3)">${skp}</div><div class="stat-lbl">Skipped</div></div>
+    <div class="stat-card"><div class="stat-val">${Math.floor(el/60)}m ${el%60}s</div><div class="stat-lbl">Time</div></div>`;
+  const ts={};
+  S.answers.forEach(a=>{const tid=a.q?.topic;if(!tid)return;if(!ts[tid])ts[tid]={c:0,t:0};ts[tid].t++;if(a.status==='correct')ts[tid].c++;});
+  document.getElementById('tb-rows').innerHTML=Object.keys(ts).map(tid=>{
+    const d=ts[tid],p=d.t?Math.round(d.c/d.t*100):0,tp=TOPICS.find(t=>t.id===tid);
+    const cl=p>=75?'var(--green)':p>=50?'var(--gold)':'var(--red)';
+    return `<div class="tb-row"><div class="tb-name">${tp?.icon||''} ${tp?.title||tid}</div><div class="tb-bar-wrap"><div class="tb-bar" style="width:${p}%;background:${cl}"></div></div><div class="tb-pct">${p}%</div></div>`;
+  }).join('');
+  buildReview('all');
+}
+
+/* ── REVIEW ── */
+function filterReview(f,btn){
+  document.querySelectorAll('.rf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); buildReview(f);
+}
+function buildReview(f){
+  let items=S.answers;
+  if(f==='wrong') items=items.filter(a=>a.status==='wrong');
+  else if(f==='correct') items=items.filter(a=>a.status==='correct');
+  else if(f==='skipped') items=items.filter(a=>a.status==='skipped');
+  const correctAns=q=>{if(!q)return'—';if(q.type==='mc')return q.opts[q.ans]||'—';if(q.type==='tf')return q.ans?'True':'False';if(q.type==='fill')return q.ans[0]||'—';return'—';};
+  document.getElementById('review-list').innerHTML=items.map((a,i)=>{
+    const isOk=a.status==='correct',isSkip=a.status==='skipped';
+    const icon=isOk?'✓':isSkip?'—':'✗',sCls=isOk?'st-correct':isSkip?'st-skipped':'st-wrong';
+    const ca=correctAns(a.q);
+    let body='';
+    if(!isOk){
+      body+=`<div class="ri-ans-row">`;
+      if(!isSkip) body+=`<div class="ans-box ans-yours"><span class="ans-box-label">Your answer</span>${a.userAns||'—'}</div>`;
+      body+=`<div class="ans-box ans-correct"><span class="ans-box-label">Correct answer</span>${ca}</div></div>`;
+    } else {
+      body+=`<div class="ri-ans-row"><div class="ans-box ans-yours ok"><span class="ans-box-label">Your answer</span>${a.userAns||ca}</div></div>`;
+    }
+    if(a.q?.exp) body+=`<div class="ri-exp">💡 ${a.q.exp}</div>`;
+    return `<div class="review-item">
+      <div class="ri-header" onclick="toggleItem(this)">
+        <div class="ri-status ${sCls}">${icon}</div>
+        <div class="ri-main">
+          <div class="ri-q-text">${a.q?.text||'—'}</div>
+          <div class="ri-topic">${TOPICS.find(t=>t.id===a.q?.topic)?.title||''}</div>
+        </div>
+        <div class="ri-chev">▾</div>
+      </div>
+      <div class="ri-body">${body}</div>
+    </div>`;
+  }).join('')||`<div style="color:var(--text3);font-size:13px;padding:20px 0">No questions in this category.</div>`;
+}
+function toggleItem(h){h.nextElementSibling.classList.toggle('open');h.querySelector('.ri-chev').classList.toggle('open');}
+
+/* ── NAV ── */
+function showScreen(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');window.scrollTo(0,0);}
+
+init();
+</script>
+</body>
+</html>
